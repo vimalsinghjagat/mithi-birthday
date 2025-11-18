@@ -1,0 +1,464 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="description" content="A small interactive birthday page for Manyata (Mithi) — made by Vimal." />
+  <title>🎉 Happy Birthday Mithi — A Card from Vimal</title>
+
+  <!-- Performance: preconnect & fewer font families -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&family=Dancing+Script:wght@600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: linear-gradient(135deg, #f5f5f5, #eaeaea, #dcdcdc);
+      --accent: #f9418e;
+      --text-dark: #222;
+      --muted: #555;
+      --card: rgba(255,255,255,0.95);
+      --shadow: 0 10px 30px rgba(0,0,0,0.08);
+      --highlight: #0d47a1;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: var(--text-dark);
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+      height: 100%;
+    }
+
+    header h1 {
+      font-family: 'Dancing Script', cursive;
+      font-size: 3rem;
+      color: #0047ab;
+      text-shadow: 2px 2px 4px rgba(0,0,0,0.06);
+    }
+
+    @media(max-width: 768px){
+      header h1 { font-size: 2.2rem; }
+      header h2 { font-size: 1.05rem; }
+      .message-box { padding: 18px; font-size: 1rem; }
+      .timeline-grid { grid-template-columns: 1fr !important; }
+      .photo { height: 160px !important; }
+    }
+
+    /* INTRO OVERLAY */
+    .intro-overlay {
+      position: fixed; inset: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(6px);
+      z-index: 9999;
+    }
+    .gift-box {
+      background: #fff;
+      border-radius: 18px;
+      padding: 30px 25px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      width: 340px;
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);} }
+    .gift-box h2 { font-family: 'Dancing Script', cursive; color: var(--accent); font-size: 2rem; margin-bottom: 8px; }
+    .gift-box p { color: var(--muted); margin-bottom: 14px; font-size: 1rem; }
+    .open-btn {
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 24px;
+      padding: 10px 22px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.22s;
+    }
+    .open-btn:hover { background: #ff1f63; }
+
+    main {
+      max-width: 1100px;
+      margin: auto;
+      padding: 50px 20px;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: all 0.6s ease;
+    }
+    .show { opacity: 1; transform: none; }
+
+    header { text-align: center; margin-bottom: 32px; }
+    header h2 { color: #ff1493; font-size: 1.2rem; margin-bottom: 12px; }
+    header p { color: var(--muted); font-size: 1rem; max-width: 760px; margin: auto; }
+
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+
+    .message-box, .timeline-item, .photo, .ending { opacity: 0; animation: fadeIn 0.9s ease forwards; }
+    .timeline-item:nth-child(1) { animation-delay: 0.25s; }
+    .timeline-item:nth-child(2) { animation-delay: 0.5s; }
+    .timeline-item:nth-child(3) { animation-delay: 0.75s; }
+
+    .message-box {
+      background: var(--card);
+      padding: 28px;
+      border-radius: 14px;
+      box-shadow: var(--shadow);
+      font-size: 1.02rem;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      margin-bottom: 40px;
+      color: #08306b;
+      position: relative;
+    }
+
+    .skip-btn { position: absolute; right: 14px; top: 12px; background: transparent; border: 0; color: var(--muted); cursor: pointer; }
+
+    .timeline { margin: 40px 0; }
+    .timeline h2 { text-align: center; font-family: 'Dancing Script', cursive; color: var(--accent); font-size: 2.6rem; margin-bottom: 18px; }
+
+    .timeline-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px,1fr)); gap: 18px; perspective: 1000px; }
+
+    .timeline-item {
+      background: var(--card);
+      border-left: 6px solid var(--highlight);
+      border-radius: 12px;
+      padding: 18px;
+      box-shadow: var(--shadow);
+      transition: transform 320ms cubic-bezier(.2,.9,.2,1), filter 320ms ease, opacity 320ms ease;
+      filter: blur(2px);
+      opacity: 0.9;
+      transform: translateZ(0) scale(0.98);
+      transform-origin: center center;
+      position: relative;
+      z-index: 1;
+    }
+
+    @media (hover: hover) and (pointer: fine) {
+      .timeline-item:hover, .timeline-item:focus { transform: translateZ(10px) scale(1.04) rotateX(2deg); filter: blur(0); opacity: 1; z-index: 5; box-shadow: 0 14px 40px rgba(13,71,161,0.12); }
+      .timeline-grid:hover .timeline-item:not(:hover) { filter: blur(4px); opacity: 0.6; transform: translateZ(0) scale(0.94); }
+    }
+
+    .timeline-item h4 { color: var(--highlight); margin-bottom: 8px; font-family: 'Dancing Script', cursive; font-size: 1.25rem; }
+    .timeline-item p { font-size: 0.98rem; color: #333; }
+
+    .gallery { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 14px; margin-top: 20px; }
+    .photo { position: relative; border-radius: 12px; overflow: hidden; height: 220px; background-size: cover; background-position: center; box-shadow: var(--shadow); }
+    .photo img { width:100%; height:100%; object-fit:cover; display:block; }
+
+    .caption { position: absolute; bottom: 0; width: 100%; background: rgba(0,0,0,0.5); color: #fff; font-size: 0.95rem; text-align: center; padding: 8px; opacity: 0; transition: 0.22s; }
+    .photo:hover .caption { opacity: 1; }
+
+    .ending { text-align: center; background: var(--card); padding: 28px 22px; border-radius: 12px; box-shadow: var(--shadow); margin-top: 36px; }
+    .ending h3 { font-family: 'Dancing Script', cursive; color: var(--accent); font-size: 2rem; margin-bottom: 8px; }
+
+    footer { text-align: center; margin-top: 30px; color: var(--muted); font-size: 0.95rem; padding-bottom: 20px; }
+
+    /* FLOATING HEARTS */
+    .heart { position: fixed; bottom: -10px; color: #f9418e; animation: floatUp 6s linear forwards; font-size: 1.4rem; opacity: 0.9; pointer-events: none; }
+    @keyframes floatUp { 0% { transform: translateY(0) scale(1); opacity: 0.9; } 100% { transform: translateY(-780px) scale(0.8); opacity: 0; } }
+
+    /* reduced motion */
+    @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } }
+  </style>
+
+  
+  <style>
+    /* Confetti */
+    #confetti-wrapper { position: fixed; inset: 0; pointer-events: none; z-index: 9998; overflow: hidden; }
+    .confetti-piece { position: absolute; width: 10px; height: 14px; opacity: 0.95; will-change: transform, opacity; transform-origin: center; }
+
+    /* Secret message button */
+    .secret-btn { margin-top: 12px; background: var(--highlight); color: #fff; border: none; padding: 8px 14px; border-radius: 18px; cursor: pointer; font-weight:600; }
+    .secret-msg { display: none; margin-top: 12px; padding: 12px; background: rgba(13,71,161,0.06); border-radius: 8px; }
+
+    /* Floating audio toggle */
+    .audio-toggle { position: fixed; right: 18px; bottom: 18px; width: 52px; height: 52px; border-radius: 50%; box-shadow: var(--shadow); display:flex; align-items:center; justify-content:center; background:#fff; cursor:pointer; z-index:10001; border: none; }
+    .audio-toggle:focus { outline: 3px solid rgba(13,71,161,0.12); }
+
+    /* small confetti animation helper (fallback) */
+    @keyframes confetti-fall { to { transform: translateY(110vh) rotate(720deg) scale(0.9); opacity: 0; } }
+  </style>
+
+</head> 
+
+<body>
+  <div class="intro-overlay" id="intro" role="dialog" aria-modal="true" aria-labelledby="giftTitle">
+    <div class="gift-box" role="document">
+      <h2 id="giftTitle">🎁 Happy Birthday, Manyata!</h2>
+      <p>Tap to unwrap your special surprise 🎂💖</p>
+      <div style="display:flex;gap:10px;justify-content:center;">
+        <button class="open-btn" id="openBtn">Open Gift</button>
+        <button class="open-btn" id="mutePreview" aria-pressed="false" title="Toggle music preview">🔈</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="hearts" aria-hidden="true"></div>
+  <div id="confetti-wrapper" aria-hidden="true"></div> 
+
+  <main id="main" tabindex="-1">
+    <header>
+      <h1>Happy Birthday, Mithi 🎉</h1>
+      <h2>Today’s all about celebrating you 💖</h2>
+      <p>Dear Manyata, you are one of those rare souls who make life brighter just by being in it. On your special day, I just want to say thank you—for your laughter, your warmth, and for being simply you.</p>
+    </header>
+
+    <section class="message-box" id="messageBox" aria-live="polite">
+      <button class="skip-btn" id="skipTyping" aria-label="Skip typing">Skip</button>
+      <p id="typeText"></p>
+    </section>
+
+    <section class="timeline" aria-labelledby="journeyTitle">
+      <h2 id="journeyTitle">💫 Our Journey 💫</h2>
+      <div class="timeline-grid" aria-label="Our journey timeline">
+        <article class="timeline-item" tabindex="0">
+          <h4>2023 — The Start</h4>
+          <p>We met, we talked, and without realizing it, you became someone special. That was the beginning of something unforgettable.</p>
+        </article>
+        <article class="timeline-item" tabindex="0">
+          <h4>2024 — Closer Than Ever</h4>
+          <p>From little jokes to deep talks, every moment brought us closer. You became a part of my daily happiness, Mithi.</p>
+        </article>
+        <article class="timeline-item" tabindex="0">
+          <h4>2025 — Forever Bond</h4>
+          <p>Through all smiles and silences, our bond only grew. You’ll always have a special place in my heart, and this page is just a small reflection of that.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="gallery" aria-label="Photos of Manyata">
+
+  <figure class="photo">
+        <img src="MITHI1.jpg" alt="Manyata looking outside the window" loading="lazy">
+        <figcaption class="caption">Calm & thoughtful</figcaption>
+      </figure>
+
+  <figure class="photo">
+        <img src="MITHI 2.jpg" alt="Manyata smiling in green t-shirt" loading="lazy">
+        <figcaption class="caption">Soft smile</figcaption>
+      </figure>
+
+  <figure class="photo">
+        <img src="MITHI3.jpg" alt="Manyata cute expressions collage" loading="lazy">
+        <figcaption class="caption">Cute moments</figcaption>
+      </figure>
+
+</section>
+
+    <section class="ending">
+      <h3>Made with ❤️ by Vimal</h3>
+      <p>Mithi, thank you for being the sunshine on cloudy days. Every word here is a piece of my heart — I hope it makes you smile today and always. 🎂💖</p>
+      <div>
+        <button class="secret-btn" id="secretBtn" aria-expanded="false">Open my secret message</button>
+        <div class="secret-msg" id="secretMsg" role="region" aria-hidden="true">Happy Birthday, Mithi — tum meri brightest smile ho. Aaj aur hamesha khush raho. 💖</div>
+      </div>
+    </section>
+
+    <footer>🎶 Keep smiling, Manyata (Mithi) – the world’s brighter with you in it 💫</footer>
+  </main>
+
+  <!-- Accessible audio with control toggle (won't autoplay without user interaction) -->
+  <audio id="bgMusic" loop preload="metadata" aria-hidden="true">
+    <source src="birthday-mithi_kHpSuBBf.mp3" type="audio/mp3">
+    <source src="happy birthday mithi message.mp3" type="audio/mp3">
+    
+    Your browser does not support audio.
+  </audio>
+
+  <script>
+  (function(){
+    'use strict';
+
+    // Elements
+    const intro = document.getElementById('intro');
+    const openBtn = document.getElementById('openBtn');
+    const mutePreview = document.getElementById('mutePreview');
+    const main = document.getElementById('main');
+    const typeText = document.getElementById('typeText');
+    const bgMusic = document.getElementById('bgMusic');
+    const hearts = document.getElementById('hearts');
+    const skipBtn = document.getElementById('skipTyping');
+    const confettiWrapper = document.getElementById('confetti-wrapper');
+    const secretBtn = document.getElementById('secretBtn');
+    const secretMsg = document.getElementById('secretMsg');
+
+    // Message content
+    const text = `Dear Mithi (Manyata),
+
+Happy Birthday to the most amazing soul I know. You bring happiness just by being yourself. Every smile of yours brightens my day, and every word you say means something special.
+
+I hope your birthday is filled with love, laughter, and little moments that make your heart full. You deserve all the happiness this world can offer.
+
+Keep shining like you always do, and remember — you’re truly one of a kind.
+
+With love and warm wishes,
+Vimal 💖`;
+
+    // Typing control
+    let typingTimer = null;
+    let isTyping = false;
+
+    function typeWriter(txt, el, speed){
+      el.textContent = '';
+      let i = 0;
+      isTyping = true;
+      function type(){
+        if (i < txt.length) {
+          el.textContent += txt.charAt(i++);
+          typingTimer = setTimeout(type, speed);
+        } else {
+          isTyping = false;
+          clearTimeout(typingTimer);
+        }
+      }
+      type();
+    }
+
+    skipBtn.addEventListener('click', () => {
+      if (isTyping) {
+        clearTimeout(typingTimer);
+        typeText.textContent = text;
+        isTyping = false;
+      }
+    });
+
+    // Hearts — capped and auto-stop
+    let heartCount = 0;
+    const MAX_HEARTS = 18;
+    let heartsInterval = null;
+
+    function startHearts(){
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return; // respect user preference
+      heartsInterval = setInterval(() => {
+        if (heartCount >= MAX_HEARTS) return;
+        heartCount++;
+        const heart = document.createElement('div');
+        heart.className = 'heart';
+        heart.style.left = Math.random() * 100 + 'vw';
+        heart.textContent = '💖';
+        hearts.appendChild(heart);
+        setTimeout(() => { heart.remove(); heartCount--; }, 6000);
+      }, 650);
+      // stop generating after 25 seconds
+      setTimeout(() => { clearInterval(heartsInterval); heartsInterval = null; }, 25000);
+    }
+
+    // Confetti: simple DOM-based confetti
+    function launchConfetti(num = 60){
+      if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+      const colors = ['#f94144','#f3722c','#f8961e','#f9c74f','#90be6d','#43aa8b','#577590','#9b5de5','#f9418e'];
+      const frag = document.createDocumentFragment();
+      const pieces = [];
+      for (let i=0;i<num;i++){
+        const el = document.createElement('div');
+        el.className = 'confetti-piece';
+        el.style.background = colors[Math.floor(Math.random()*colors.length)];
+        el.style.left = Math.random()*100 + 'vw';
+        el.style.top = (-10 - Math.random()*20) + 'vh';
+        const rot = Math.random()*360;
+        el.style.transform = `rotate(${rot}deg)`;
+        const duration = 3000 + Math.random()*2200;
+        el.style.transition = `transform ${duration}ms linear, opacity ${duration}ms linear`;
+        frag.appendChild(el);
+        pieces.push({el,duration});
+      }
+      confettiWrapper.appendChild(frag);
+      // trigger fall
+      pieces.forEach((p, idx)=>{
+        requestAnimationFrame(()=>{
+          const angle = (Math.random()*60 - 30);
+          p.el.style.transform = `translateY(110vh) rotate(${360 + Math.random()*720}deg)`;
+          p.el.style.opacity = '0';
+        });
+        // cleanup
+        setTimeout(()=> { p.el.remove(); }, p.duration + 100);
+      });
+    }
+
+    // Fade-in music helper
+    function fadeInMusic(target = 0.45, step = 0.02, interval = 180){
+      let vol = 0;
+      bgMusic.volume = 0;
+      const fade = setInterval(() => {
+        vol = Math.min(vol + step, target);
+        bgMusic.volume = vol;
+        if (vol >= target) clearInterval(fade);
+      }, interval);
+    }
+
+    // Floating audio toggle created dynamically
+    const audioToggle = document.createElement('button');
+    audioToggle.className = 'audio-toggle';
+    audioToggle.setAttribute('aria-label','Toggle background music');
+    audioToggle.innerHTML = '🔈';
+    document.body.appendChild(audioToggle);
+    let audioPlaying = false;
+    audioToggle.addEventListener('click', () => {
+      if (!audioPlaying) {
+        bgMusic.currentTime = 0;
+        bgMusic.play().then(()=>{ fadeInMusic(); audioPlaying = true; audioToggle.innerHTML='🔊'; }).catch(()=>{ audioPlaying = false; });
+      } else {
+        bgMusic.pause(); audioPlaying = false; audioToggle.innerHTML='🔈';
+      }
+    });
+
+    // Mute preview button toggles audio playback on the overlay (before open)
+    let previewPlaying = false;
+    mutePreview.addEventListener('click', () => {
+      previewPlaying = !previewPlaying;
+      mutePreview.textContent = previewPlaying ? '🔊' : '🔈';
+      mutePreview.setAttribute('aria-pressed', String(previewPlaying));
+      if (previewPlaying) {
+        bgMusic.currentTime = 0;
+        bgMusic.play().catch(()=>{});
+      } else {
+        bgMusic.pause();
+      }
+    });
+
+    // Secret message toggle
+    secretBtn.addEventListener('click', () => {
+      const open = secretBtn.getAttribute('aria-expanded') === 'true';
+      secretBtn.setAttribute('aria-expanded', String(!open));
+      secretMsg.style.display = open ? 'none' : 'block';
+      secretMsg.setAttribute('aria-hidden', String(open));
+      if (!open) { secretMsg.scrollIntoView({behavior:'smooth', block:'center'}); }
+    });
+
+    // Open button handler
+    openBtn.addEventListener('click', () => {
+      // hide overlay
+      intro.style.display = 'none';
+      intro.setAttribute('aria-hidden', 'true');
+      main.classList.add('show');
+      main.focus();
+
+      // play music and fade-in (user initiated)
+      bgMusic.play().then(()=> fadeInMusic()).catch(()=>{/* play might be blocked */});
+
+      // start typing and hearts
+      typeWriter(text, typeText, 28);
+      startHearts();
+
+      // confetti + subtle glow on title
+      launchConfetti(72);
+      const title = document.querySelector('header h1');
+      if (title){ title.style.transition='text-shadow 800ms ease'; title.style.textShadow='0 0 14px rgba(249,65,142,0.9)'; setTimeout(()=> title.style.textShadow='2px 2px 4px rgba(0,0,0,0.06)', 2200); }
+    });
+
+    // Accessibility: basic cleanup on unload
+    window.addEventListener('unload', () => { if (heartsInterval) clearInterval(heartsInterval); if (typingTimer) clearTimeout(typingTimer); });
+
+    // If current local time is exactly midnight, auto-pop the surprise (best-effort)
+    const now = new Date();
+    if (now.getHours() === 0 && now.getMinutes() === 0) {
+      // small delay to allow page ready
+      setTimeout(()=> { if (intro && intro.style.display !== 'none') openBtn.click(); }, 1200);
+    }
+
+  })();
+  </script>
+</body>
+</html>
